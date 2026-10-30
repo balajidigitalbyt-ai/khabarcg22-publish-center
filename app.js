@@ -175,5 +175,148 @@
     if (persist()) { renderList("queue"); showToast("Moved to demo history. No platform was contacted."); }
   }
   $("#helpBtn").addEventListener("click",()=>showToast("Demo mode: drafts stay in this browser. Publishing connections are planned for Phase 2."));
+  
+  // ===== Khabar CG22: Secure Blogger Draft Integration =====
+  const PUBLISH_API = "https://khabarcg22-publish-api.d-deep-m.workers.dev";
+  let adminSessionToken = "";
+
+  // Add a Blogger login/status panel to Settings
+  const settingsView = $("#view-settings");
+  if (settingsView && !$("#bloggerAdminPanel")) {
+    const panel = document.createElement("section");
+    panel.id = "bloggerAdminPanel";
+    panel.style.cssText = "margin:20px 0;padding:18px;border:1px solid #ddd;border-radius:12px;background:#fff;";
+    panel.innerHTML = `
+      <h3 style="margin:0 0 8px">Blogger connection</h3>
+      <p id="bloggerAuthStatus" style="margin:0 0 14px;font-size:13px">Checking login status…</p>
+      <button type="button" id="bloggerLoginBtn" style="padding:10px 16px;border:0;border-radius:8px;cursor:pointer">Login with Google</button>
+      <button type="button" id="bloggerLogoutBtn" style="display:none;margin-left:8px;padding:10px 16px;border:1px solid #ccc;border-radius:8px;cursor:pointer">Logout</button>
+      <p style="font-size:11px;opacity:.7;margin:12px 0 0">Connected blog: cg22news.blogspot.com · Draft-only mode</p>
+    `;
+    settingsView.appendChild(panel);
+  }
+
+  // Add a separate Blogger draft button beside the existing review button
+  const reviewButton = $("#reviewBtn");
+  if (reviewButton && !$("#saveBloggerDraftBtn")) {
+    const draftButton = document.createElement("button");
+    draftButton.type = "button";
+    draftButton.id = "saveBloggerDraftBtn";
+    draftButton.textContent = "Save as Blogger Draft";
+    draftButton.style.cssText = "display:block;margin-top:12px;padding:12px 18px;border:0;border-radius:9px;cursor:pointer;background:#263b55;color:white;width:100%;";
+    reviewButton.insertAdjacentElement("afterend", draftButton);
+  }
+
+  const setBloggerStatus = (message, loggedIn = false) => {
+    const status = $("#bloggerAuthStatus");
+    const login = $("#bloggerLoginBtn");
+    const logout = $("#bloggerLogoutBtn");
+    if (status) status.textContent = message;
+    if (login) login.style.display = loggedIn ? "none" : "inline-block";
+    if (logout) logout.style.display = loggedIn ? "inline-block" : "none";
+  };
+
+  async function verifyAdminSession() {
+    if (!adminSessionToken) {
+      setBloggerStatus("Not logged in. Login with your authorized Google account.");
+      return false;
+    }
+    try {
+      const response = await fetch(PUBLISH_API + "/admin/check", {
+        method: "GET",
+        headers: { Authorization: "Bearer " + adminSessionToken }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.authenticated) throw new Error("Session invalid or expired.");
+      setBloggerStatus("Connected as " + (result.email || "admin") + ". Ready to save Blogger drafts.", true);
+      return true;
+    } catch (error) {
+      adminSessionToken = "";
+      setBloggerStatus("Login check failed: " + error.message);
+      return false;
+    }
+  }
+
+  // Read the one-time login token from the URL fragment, then remove it
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const receivedToken = hashParams.get("admin_token");
+  if (receivedToken) {
+    adminSessionToken = receivedToken;
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    verifyAdminSession();
+  } else {
+    verifyAdminSession();
+  }
+
+  $("#bloggerLoginBtn")?.addEventListener("click", () => {
+    window.location.href = PUBLISH_API + "/admin/login";
+  });
+
+  $("#bloggerLogoutBtn")?.addEventListener("click", async () => {
+    if (adminSessionToken) {
+      try {
+        await fetch(PUBLISH_API + "/admin/logout", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + adminSessionToken }
+        });
+      } catch (error) {
+        // Clear the local session even if the network request fails.
+      }
+    }
+    adminSessionToken = "";
+    setBloggerStatus("Logged out. Login again when you want to save a draft.");
+    showToast("Logged out from Blogger admin.");
+  });
+
+  $("#saveBloggerDraftBtn")?.addEventListener("click", async () => {
+    if (!adminSessionToken || !(await verifyAdminSession())) {
+      showToast("Please login with Google first from Settings.");
+      return;
+    }
+
+    const headline = $("#headline").value.trim();
+    const story = $("#story").value.trim();
+    if (!headline || !story) {
+      showToast("Add both headline and full story first.");
+      return;
+    }
+
+    if (!confirm("Save this story as a DRAFT on the test blog cg22news.blogspot.com? It will NOT be published.")) return;
+
+    const escapeForHtml = value => String(value).replace(/[&<>"']/g, ch => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[ch]));
+
+    const content = "<p>" + escapeForHtml(story).replace(/\n/g, "</p><p>") + "</p>";
+    const labels = [$("#category").value, $("#location").value.trim()].filter(Boolean);
+
+    const button = $("#saveBloggerDraftBtn");
+    button.disabled = true;
+    button.textContent = "Saving draft…";
+
+    try {
+      const response = await fetch(PUBLISH_API + "/api/drafts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + adminSessionToken
+        },
+        body: JSON.stringify({ title: headline, content, labels })
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || result.message || "Draft save failed.");
+
+      showToast("Blogger draft saved on cg22news.blogspot.com!");
+      setBloggerStatus("Google admin session active. Test-blog draft saved.", true);
+    } catch (error) {
+      showToast("Blogger draft error: " + error.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = "Save as Blogger Draft";
+    }
+  });
+  // ===== End Blogger Draft Integration =====
+
   updateCounts(); updatePreview(); renderRecent();
 })();
