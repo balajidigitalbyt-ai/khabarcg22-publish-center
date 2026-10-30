@@ -61,22 +61,65 @@
   $$("[data-view]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.view)));
   $$("[data-go]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.go)));
 
+  
   function setImage(source) {
     imageData = source || "";
     const target = $("#previewImage");
-    target.innerHTML = imageData ? '<img src="' + imageData + '" alt="Featured story image preview">' : '<span>CG22</span><small>STORY IMAGE</small>';
+    target.innerHTML = imageData
+      ? '<img src="' + escapeHTML(imageData) + '" alt="Featured story image preview">'
+      : '<span>CG22</span><small>STORY IMAGE</small>';
     $("#imageStatus").textContent = imageData ? "Image added to preview." : "";
   }
-  $("#imageFile").addEventListener("change", event => {
+
+  // Upload selected image to Cloudinary
+  async function uploadImageToCloudinary(file) {
+    const CLOUD_NAME = "bkueepzo";
+    const UPLOAD_PRESET = "cg22_news_upload";
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("upload_preset", UPLOAD_PRESET);
+    form.append("folder", "cg22-news");
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      { method: "POST", body: form }
+    );
+
+    const result = await response.json();
+    if (!response.ok || !result.secure_url) {
+      throw new Error(result.error?.message || "Cloudinary image upload failed.");
+    }
+    return result.secure_url;
+  }
+
+ 
+  $("#imageFile").addEventListener("change", async event => {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { showToast("Please choose a JPG, PNG or WEBP image."); return; }
-    if (file.size > 1200000) { showToast("Please use an image smaller than 1.2 MB for browser draft storage."); return; }
-    const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result));
-    reader.onerror = () => showToast("Could not read this image. Try another file.");
-    reader.readAsDataURL(file);
+
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      showToast("Please choose a JPG, PNG or WEBP image.");
+      return;
+    }
+    if (file.size > 1200000) {
+      showToast("Please use an image smaller than 1.2 MB.");
+      return;
+    }
+
+    const status = $("#imageStatus");
+    status.textContent = "Uploading image to Cloudinary…";
+
+    try {
+      const imageUrl = await uploadImageToCloudinary(file);
+      setImage(imageUrl);
+      showToast("Image uploaded successfully!");
+    } catch (error) {
+      status.textContent = "Image upload failed.";
+      showToast(error.message);
+    }
   });
+
   $("#useImageUrl").addEventListener("click", () => {
     const url = $("#imageUrl").value.trim();
     if (!url) { showToast("Paste an image URL first."); return; }
@@ -287,7 +330,23 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[ch]));
 
-    const content = "<p>" + escapeForHtml(story).replace(/\n/g, "</p><p>") + "</p>";
+   
+const storyHtml = "<p>" + escapeForHtml(story).replace(/\n/g, "</p><p>") + "</p>";
+
+let imageHtml = "";
+if (imageData) {
+  try {
+    const imageUrl = new URL(imageData);
+    if (imageUrl.protocol === "https:" && imageUrl.hostname === "res.cloudinary.com") {
+      imageHtml = '<div><img src="' + escapeForHtml(imageUrl.href) + '" alt="' + escapeForHtml(headline) + '" style="max-width:100%;height:auto;" /></div>';
+    }
+  } catch (error) {
+    imageHtml = "";
+  }
+}
+
+const content = imageHtml + storyHtml;
+
     const labels = [$("#category").value, $("#location").value.trim()].filter(Boolean);
 
     const button = $("#saveBloggerDraftBtn");
