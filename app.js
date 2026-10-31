@@ -217,7 +217,7 @@
     const item = state.queue.splice(idx,1)[0]; item.publishedAt = new Date().toISOString(); state.published.unshift(item);
     if (persist()) { renderList("queue"); showToast("Moved to demo history. No platform was contacted."); }
   }
-  $("#helpBtn").addEventListener("click",()=>showToast("Demo mode: drafts stay in this browser. Publishing connections are planned for Phase 2."));
+  $("#helpBtn").addEventListener("click",()=>showToast("Blogger draft mode is available. Save a story as an unpublished draft on the main Khabar CG22 website. Other channels remain disconnected."));
   
   // ===== Khabar CG22: Secure Blogger Draft Integration =====
   const PUBLISH_API = "https://khabarcg22-publish-api.d-deep-m.workers.dev";
@@ -234,7 +234,7 @@
       <p id="bloggerAuthStatus" style="margin:0 0 14px;font-size:13px">Checking login status…</p>
       <button type="button" id="bloggerLoginBtn" style="padding:10px 16px;border:0;border-radius:8px;cursor:pointer">Login with Google</button>
       <button type="button" id="bloggerLogoutBtn" style="display:none;margin-left:8px;padding:10px 16px;border:1px solid #ccc;border-radius:8px;cursor:pointer">Logout</button>
-      <p style="font-size:11px;opacity:.7;margin:12px 0 0">Connected blog: cg22news.blogspot.com · Draft-only mode</p>
+      <p style="font-size:11px;opacity:.7;margin:12px 0 0">Connected blog: www.khabarcg22.in · Draft-only mode</p>
     `;
     settingsView.appendChild(panel);
   }
@@ -324,7 +324,7 @@
       return;
     }
 
-    if (!confirm("Save this story as a DRAFT on the test blog cg22news.blogspot.com? It will NOT be published.")) return;
+    if (!confirm("Save this story as an UNPUBLISHED DRAFT on the main Khabar CG22 website (www.khabarcg22.in)? It will NOT go live.")) return;
 
     const escapeForHtml = value => String(value).replace(/[&<>"']/g, ch => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -366,8 +366,8 @@ const content = imageHtml + storyHtml;
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || result.message || "Draft save failed.");
 
-      showToast("Blogger draft saved on cg22news.blogspot.com!");
-      setBloggerStatus("Google admin session active. Test-blog draft saved.", true);
+      showToast("Unpublished Blogger draft saved on www.khabarcg22.in!");
+      setBloggerStatus("Google admin session active. Main Khabar CG22 draft saved.", true);
     } catch (error) {
       showToast("Blogger draft error: " + error.message);
     } finally {
