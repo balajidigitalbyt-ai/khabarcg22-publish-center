@@ -18,7 +18,7 @@
         <span class="brand-mark">22</span>
         <span class="brand-copy"><strong>KHABAR <b>CG22</b></strong><small>PUBLISH CENTER</small></span>
       </a>
-      <div class="workspace-label">WORKSPACE</div>
+      <div class="workspace-label">KHABAR CG22 NEWSROOM</div>
       <nav class="main-nav" aria-label="Main navigation">
         <button class="nav-link active" data-view="overview"><span class="nav-icon">▦</span>Overview</button>
         <button class="nav-link" data-view="create"><span class="nav-icon">＋</span>Create post</button>
@@ -36,7 +36,7 @@
     <main class="main-area">
       <header class="topbar">
         <div class="breadcrumbs"><span>Workspace</span><i>/</i><strong id="crumbTitle">Overview</strong></div>
-        <div class="top-actions"><span class="demo-pill"><span></span> DRAFT-ONLY MODE</span><button class="help-button" id="helpBtn" aria-label="Help">?</button></div>
+        <div class="top-actions"><span class="demo-pill" id="workspaceConnectionBadge"><span></span> CHECKING CONNECTION</span><button class="help-button" id="helpBtn" aria-label="Help">?</button></div>
       </header>
 
       <section class="page-view active" id="view-overview">
@@ -46,9 +46,9 @@
         </div>
         <div class="stat-grid">
           <article class="stat-card"><div class="stat-top"><span>Drafts</span><span class="stat-icon lavender">▤</span></div><strong id="overviewDrafts">0</strong><small>Saved on this device</small></article>
-          <article class="stat-card"><div class="stat-top"><span>In publishing queue</span><span class="stat-icon amber">◷</span></div><strong id="overviewQueue">0</strong><small>Waiting for connection</small></article>
-          <article class="stat-card"><div class="stat-top"><span>Published</span><span class="stat-icon green">✓</span></div><strong id="overviewPublished">0</strong><small>Demo activity only</small></article>
-          <article class="stat-card"><div class="stat-top"><span>Connected channels</span><span class="stat-icon blue">⌁</span></div><strong>1 <em>/ 6</em></strong><small>Main Blogger draft API connected</small></article>
+          <article class="stat-card"><div class="stat-top"><span>In publishing queue</span><span class="stat-icon amber">◷</span></div><strong id="overviewQueue">0</strong><small>Saved for later scheduling</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Published</span><span class="stat-icon green">✓</span></div><strong id="overviewPublished">0</strong><small>Blogger posts published</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Connected channels</span><span class="stat-icon blue">⌁</span></div><strong id="connectedChannelsCount">0 <em>/ 6</em></strong><small id="connectedChannelsLabel">Checking platform connections…</small></article>
         </div>
         <div class="overview-grid">
           <section class="panel quick-panel"><div class="panel-heading"><div><h2>Start publishing</h2><p>Prepare a story and choose where it should go.</p></div><span class="heading-spark">✦</span></div>
@@ -56,9 +56,9 @@
             <button class="quick-action" data-go="drafts"><span class="quick-icon yellow">▤</span><span><strong>Continue a draft</strong><small>Pick up where your editorial team left off</small></span><b>→</b></button>
             <button class="quick-action" data-go="queue"><span class="quick-icon mint">◷</span><span><strong>Review publishing queue</strong><small>See stories ready for connected channels</small></span><b>→</b></button>
           </section>
-          <section class="panel channel-panel"><div class="panel-heading"><div><h2>Publishing destinations</h2><p>Channels planned for your workflow</p></div><span class="muted-tag">BLOGGER DRAFTS ACTIVE</span></div>
+          <section class="panel channel-panel"><div class="panel-heading"><div><h2>Publishing destinations</h2><p>Live connection status for your publishing workflow</p></div><span class="muted-tag">BLOGGER DRAFTS ACTIVE</span></div>
             <div class="channel-list">
-              <div class="channel-row"><span class="channel-logo blogger">B</span><span><strong>Blogger</strong><small>News website</small></span><span class="status-off">Draft-only connected</span></div>
+              <div class="channel-row"><span class="channel-logo blogger">B</span><span><strong>Blogger</strong><small>News website</small></span><span class="status-off" id="bloggerChannelStatus">Checking…</span></div>
               <div class="channel-row"><span class="channel-logo instagram">◎</span><span><strong>Instagram</strong><small>Posts &amp; reels</small></span><span class="status-off">Not connected</span></div>
               <div class="channel-row"><span class="channel-logo facebook">f</span><span><strong>Facebook Page</strong><small>Page updates</small></span><span class="status-off">Not connected</span></div>
               <div class="channel-row"><span class="channel-logo youtube">▶</span><span><strong>YouTube</strong><small>Videos &amp; Shorts</small></span><span class="status-off">Not connected</span></div>
@@ -98,7 +98,7 @@
               <label class="destination-option"><input type="checkbox" name="destination" value="WhatsApp Channel"><span class="dest-logo whatsapp">◔</span><span><strong>WhatsApp Channel</strong><small>Share-ready copy</small></span><span class="fake-check"></span></label>
               <label class="destination-option"><input type="checkbox" name="destination" value="WhatsApp Broadcast"><span class="dest-logo whatsapp">◔</span><span><strong>WhatsApp Broadcast</strong><small>Share-ready copy</small></span><span class="fake-check"></span></label>
             </div>
-            <div class="notice"><span>ⓘ</span><p><strong>Demo mode:</strong> Selecting a destination only saves your publishing preference. Nothing is sent to any platform yet.</p></div>
+            <div class="notice"><span>ⓘ</span><p><strong>Connection status:</strong> Blogger draft saving is connected. Direct publishing and scheduling are being added; other selected platforms are not connected yet.</p></div>
             <div class="editor-actions"><button class="ghost-button" id="clearBtn">Clear editor</button><div><button class="outline-button" id="saveDraftBtn">Save as draft</button><button class="primary-button" id="reviewBtn">Review post <span>→</span></button></div></div>
           </section>
           <aside class="preview-column">
@@ -109,8 +109,8 @@
       </section>
 
       <section class="page-view" id="view-drafts"><div class="page-heading"><div><p class="eyebrow">YOUR WORK IN PROGRESS</p><h1>Drafts</h1><p class="subheading">Stories saved on this device, ready for another edit.</p></div><button class="primary-button" data-go="create">＋ Create a post</button></div><section class="panel list-panel" id="draftList"></section></section>
-      <section class="page-view" id="view-queue"><div class="page-heading"><div><p class="eyebrow">UP NEXT</p><h1>Publishing queue</h1><p class="subheading">Stories marked for publishing. Live delivery is not enabled in demo mode.</p></div><button class="primary-button" data-go="create">＋ Create a post</button></div><section class="panel list-panel" id="queueList"></section></section>
-      <section class="page-view" id="view-published"><div class="page-heading"><div><p class="eyebrow">YOUR ARCHIVE</p><h1>Published history</h1><p class="subheading">A record of completed demo workflow actions.</p></div></div><section class="panel list-panel" id="publishedList"></section></section>
+      <section class="page-view" id="view-queue"><div class="page-heading"><div><p class="eyebrow">UP NEXT</p><h1>Publishing queue</h1><p class="subheading">Stories waiting for the scheduling and publishing workflow.</p></div><button class="primary-button" data-go="create">＋ Create a post</button></div><section class="panel list-panel" id="queueList"></section></section>
+      <section class="page-view" id="view-published"><div class="page-heading"><div><p class="eyebrow">YOUR ARCHIVE</p><h1>Published history</h1><p class="subheading">A record of confirmed posts published through connected platforms.</p></div></div><section class="panel list-panel" id="publishedList"></section></section>
       <section class="page-view" id="view-settings"><div class="page-heading"><div><p class="eyebrow">WORKSPACE PREFERENCES</p><h1>Settings</h1><p class="subheading">Your publishing setup and connection roadmap.</p></div></div><div class="settings-grid"><section class="panel settings-panel"><h2>Workspace status</h2><div class="settings-status"><span class="mode-dot"></span><div><strong>Blogger draft mode is active</strong><p>Use “Save as Blogger Draft” to send an unpublished draft to the main Khabar CG22 website. Local drafts remain on this device; other channels are not connected.</p></div></div><div class="setting-line"><span>Workspace</span><strong>Khabar CG22</strong></div><div class="setting-line"><span>Default language</span><strong>Hindi / English</strong></div><div class="setting-line"><span>Storage</span><strong>Browser local storage</strong></div></section><section class="panel settings-panel"><h2>Connection roadmap</h2><div class="roadmap-item"><b>01</b><span><strong>Blogger</strong><small>Official API · connected for draft-only mode</small></span><em>Draft-only active</em></div><div class="roadmap-item"><b>02</b><span><strong>Instagram &amp; Facebook</strong><small>Meta Graph API · eligible professional accounts</small></span><em>Planned</em></div><div class="roadmap-item"><b>03</b><span><strong>YouTube</strong><small>YouTube Data API · video upload workflow</small></span><em>Planned</em></div><div class="roadmap-item"><b>04</b><span><strong>WhatsApp</strong><small>Safe share workflow; channel automation subject to API support</small></span><em>Manual first</em></div></section></div><div class="notice settings-notice"><span>🔒</span><p><strong>Security first:</strong> API keys and access tokens will never be placed in public frontend code. Any future automated connection must use secure server-side secrets.</p></div></section>
     </main>
   </div>
