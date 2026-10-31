@@ -377,5 +377,28 @@ const content = imageHtml + storyHtml;
   });
   // ===== End Blogger Draft Integration =====
 
+  // Reflect the real server-side Blogger connection instead of a hard-coded demo state.
+  async function refreshWorkspaceConnection() {
+    const badge = $("#workspaceConnectionBadge");
+    const count = $("#connectedChannelsCount");
+    const label = $("#connectedChannelsLabel");
+    const blogger = $("#bloggerChannelStatus");
+    try {
+      const response = await fetch(PUBLISH_API + "/status", { cache: "no-store" });
+      const result = await response.json();
+      const connected = response.ok && result.googleConnected === true && result.testBlogVerified === true;
+      if (badge) badge.innerHTML = '<span></span> ' + (connected ? 'BLOGGER DRAFTS CONNECTED' : 'CONNECTION NEEDS ATTENTION');
+      if (count) count.innerHTML = (connected ? '1' : '0') + ' <em>/ 6</em>';
+      if (label) label.textContent = connected ? 'Blogger draft API verified · 5 destinations not connected' : 'Blogger connection not verified yet';
+      if (blogger) blogger.textContent = connected ? 'Draft saving connected' : 'Not verified';
+    } catch (error) {
+      if (badge) badge.innerHTML = '<span></span> CONNECTION STATUS UNAVAILABLE';
+      if (count) count.innerHTML = '— <em>/ 6</em>';
+      if (label) label.textContent = 'Could not check platform connections';
+      if (blogger) blogger.textContent = 'Status unavailable';
+    }
+  }
+  refreshWorkspaceConnection();
+
   updateCounts(); updatePreview(); renderRecent();
 })();
